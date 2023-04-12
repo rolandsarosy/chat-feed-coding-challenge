@@ -14,7 +14,7 @@ import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.io.IOException
 
-class BaseViewModel : ViewModel() {
+abstract class BaseViewModel : ViewModel() {
     val errorEvent = MutableLiveData<Event<String>>()
 
     companion object {

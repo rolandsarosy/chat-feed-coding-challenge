@@ -18,7 +18,7 @@ class ChatFeedChallengeApplication : Application() {
             androidLogger(Level.ERROR)
             androidContext(this@ChatFeedChallengeApplication)
             androidFileProperties()
-            modules(listOf(networkModule))
+            modules(listOf(networkModule, modelModule, viewModelModule))
         }
 
         if (BuildConfig.DEBUG) {

@@ -1,6 +1,8 @@
 package com.rolandsarosy.chatfeedchallenge.di
 
 import com.rolandsarosy.chatfeedchallenge.BuildConfig
+import com.rolandsarosy.chatfeedchallenge.features.chat.model.ChatModel
+import com.rolandsarosy.chatfeedchallenge.features.chat.viewmodel.ChatViewModel
 import com.rolandsarosy.chatfeedchallenge.network.Endpoint
 import com.rolandsarosy.chatfeedchallenge.network.responseadapter.NetworkResponseAdapterFactory
 import com.squareup.moshi.Moshi
@@ -8,6 +10,7 @@ import okhttp3.ConnectionPool
 import okhttp3.OkHttpClient
 import okhttp3.Protocol
 import okhttp3.logging.HttpLoggingInterceptor
+import org.koin.androidx.viewmodel.dsl.viewModel
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
 import retrofit2.Retrofit
@@ -25,6 +28,14 @@ val networkModule = module {
     single(named(OK_HTTP)) { createOkHttpClient() }
     single(named(RETROFIT)) { createRetrofit(get(), get(named(RETROFIT))) }
     single { createEndpoint(get(named(RETROFIT))) }
+}
+
+val modelModule = module {
+    single { ChatModel(get()) }
+}
+
+val viewModelModule = module {
+    viewModel { ChatViewModel(get()) }
 }
 
 fun createOkHttpClient(): OkHttpClient {
