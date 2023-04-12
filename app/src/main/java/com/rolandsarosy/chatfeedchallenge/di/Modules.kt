@@ -2,6 +2,7 @@ package com.rolandsarosy.chatfeedchallenge.di
 
 import com.rolandsarosy.chatfeedchallenge.BuildConfig
 import com.rolandsarosy.chatfeedchallenge.network.Endpoint
+import com.rolandsarosy.chatfeedchallenge.network.responseadapter.NetworkResponseAdapterFactory
 import com.squareup.moshi.Moshi
 import okhttp3.ConnectionPool
 import okhttp3.OkHttpClient
@@ -45,6 +46,7 @@ fun createOkHttpBuilder(): OkHttpClient.Builder {
 
 fun createRetrofit(moshi: Moshi, okHttpClient: OkHttpClient): Retrofit = Retrofit.Builder()
     .baseUrl(BuildConfig.BASE_URL)
+    .addCallAdapterFactory(NetworkResponseAdapterFactory())
     .addConverterFactory(MoshiConverterFactory.create(moshi))
     .client(okHttpClient)
     .build()
