@@ -35,8 +35,10 @@
             android:layout_marginHorizontal="16dp"
             android:layout_marginBottom="16dp"
             android:hint="@string/input_field_hint"
-            app:endIconMode="clear_text"
-            app:layout_constraintBottom_toBottomOf="parent">
+            app:endIconDrawable="@drawable/ic_enter"
+            app:endIconMode="custom"
+            app:layout_constraintBottom_toBottomOf="parent"
+            bind:onEndIconClickListener="@{viewModel::onInputFieldEndIconClicked}">
 
             <EditText
                 android:id="@+id/chat_input_field"
@@ -46,7 +48,7 @@
                 android:inputType="text"
                 android:maxLines="1"
                 bind:onEditorActionCompleteListener="@{viewModel.editorActionListener}"
-                bind:text="@{viewModel.commandText}" />
+                bind:text="@={viewModel.commandText}" />
         </com.google.android.material.textfield.TextInputLayout>
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>

@@ -1,5 +1,6 @@
 package com.rolandsarosy.chatfeedchallenge.features.chat.viewmodel
 
+import android.view.View
 import android.widget.TextView.OnEditorActionListener
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
@@ -31,6 +32,8 @@ class ChatViewModel(private val model: ChatModel) : BaseViewModel() {
         private const val POLL_STARTING_ITEM = 0
         private const val POLL_DELAY_IN_MILLIS = 5000L
     }
+
+    fun onInputFieldEndIconClicked(view: View) = handleTextInput(commandText.safeValue("").trim().uppercase())
 
     private fun getChatItems(skipTo: Int = POLL_STARTING_ITEM) {
         previousSkipValue = skipTo
