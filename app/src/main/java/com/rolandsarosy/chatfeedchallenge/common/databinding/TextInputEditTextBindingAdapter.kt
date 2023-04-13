@@ -1,28 +1,28 @@
 package com.rolandsarosy.chatfeedchallenge.common.databinding
 
-import android.widget.EditText
 import android.widget.TextView.OnEditorActionListener
 import androidx.core.widget.doAfterTextChanged
 import androidx.databinding.BindingAdapter
 import androidx.databinding.InverseBindingAdapter
 import androidx.databinding.InverseBindingListener
+import com.google.android.material.textfield.TextInputEditText
 
-object EditTextBindingAdapter {
+object TextInputEditTextBindingAdapter {
     @JvmStatic
     @BindingAdapter("text")
-    fun EditText.setDataBindingText(text: String) = if (this.text.toString() != text) this.setText(text) else Unit
+    fun TextInputEditText.setDataBindingText(text: String) = if (this.text.toString() != text) this.setText(text) else Unit
 
     @JvmStatic
     @InverseBindingAdapter(attribute = "text", event = "textAttrChanged")
-    fun EditText.getDataBindingText() = this.text.toString()
+    fun TextInputEditText.getDataBindingText() = this.text.toString()
 
     @JvmStatic
     @BindingAdapter("textAttrChanged")
-    fun EditText.setupListener(listener: InverseBindingListener) = this.doAfterTextChanged { listener.onChange() }
+    fun TextInputEditText.setupListener(listener: InverseBindingListener) = this.doAfterTextChanged { listener.onChange() }
 
     @JvmStatic
     @BindingAdapter("onEditorActionCompleteListener")
-    fun addEditorActionCompleteListener(editText: EditText, listener: OnEditorActionListener) {
+    fun addEditorActionCompleteListener(editText: TextInputEditText, listener: OnEditorActionListener) {
         editText.setOnEditorActionListener(listener)
     }
 }
