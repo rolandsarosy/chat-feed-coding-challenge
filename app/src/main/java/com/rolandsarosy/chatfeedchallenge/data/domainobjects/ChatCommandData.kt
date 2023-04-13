@@ -1,7 +1,6 @@
 package com.rolandsarosy.chatfeedchallenge.data.domainobjects
 
-data class ChatData(
+class ChatCommandData(
     val id: Long,
-    val description: String,
-    val arrivedAtTime: String
+    val text: String
 )

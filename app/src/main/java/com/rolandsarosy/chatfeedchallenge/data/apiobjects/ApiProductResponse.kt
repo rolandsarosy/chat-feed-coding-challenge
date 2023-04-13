@@ -1,7 +1,7 @@
 package com.rolandsarosy.chatfeedchallenge.data.apiobjects
 
-import com.rolandsarosy.chatfeedchallenge.common.utils.DateUtils
-import com.rolandsarosy.chatfeedchallenge.data.domainobjects.ChatData
+import com.rolandsarosy.chatfeedchallenge.common.utils.TimeUtils
+import com.rolandsarosy.chatfeedchallenge.data.domainobjects.ChatResponseData
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 
@@ -15,8 +15,8 @@ data class ApiProductResponse(@Json(name = "products") val products: List<ApiPro
 }
 
 // We can assume that the first item is the one we need from the "list", since we're always requesting just the one.
-fun ApiProductResponse.asChatData() = ChatData(
+fun ApiProductResponse.asChatResponseData() = ChatResponseData(
     id = products[0].id,
-    description = products[0].description,
-    arrivedAtTime = DateUtils.getTimeOfDay(System.currentTimeMillis())
+    text = products[0].description,
+    arrivedAtTime = TimeUtils.getTimeOfDay(System.currentTimeMillis())
 )

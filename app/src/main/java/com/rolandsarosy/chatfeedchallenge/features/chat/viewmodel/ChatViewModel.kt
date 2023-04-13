@@ -1,14 +1,30 @@
 package com.rolandsarosy.chatfeedchallenge.features.chat.viewmodel
 
+import android.widget.TextView.OnEditorActionListener
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import com.rolandsarosy.chatfeedchallenge.common.base.BaseViewModel
+import com.rolandsarosy.chatfeedchallenge.common.event.Event
+import com.rolandsarosy.chatfeedchallenge.common.extensions.default
+import com.rolandsarosy.chatfeedchallenge.common.extensions.safeValue
 import com.rolandsarosy.chatfeedchallenge.common.extensions.waitAndRun
-import com.rolandsarosy.chatfeedchallenge.data.domainobjects.ChatData
+import com.rolandsarosy.chatfeedchallenge.common.recyclerview.ListItemViewModel
+import com.rolandsarosy.chatfeedchallenge.data.domainobjects.ChatCommand
+import com.rolandsarosy.chatfeedchallenge.data.domainobjects.ChatCommandData
+import com.rolandsarosy.chatfeedchallenge.data.domainobjects.ChatResponseData
 import com.rolandsarosy.chatfeedchallenge.features.chat.model.ChatModel
 import com.rolandsarosy.chatfeedchallenge.network.NetworkCallErrorResponse.NetworkCallError
 import timber.log.Timber
 
 class ChatViewModel(private val model: ChatModel) : BaseViewModel() {
+    val listItems = MutableLiveData<List<ListItemViewModel>>().default(emptyList())
+    val onListItemAddedEvent = MutableLiveData<Event<Boolean>>()
+    val commandText = MutableLiveData<String>().default("")
+    val editorActionListener = OnEditorActionListener { textView, _, _ ->
+        handleTextInput(textView.text.toString().trim().uppercase())
+        return@OnEditorActionListener true
+    }
+
     private var previousSkipValue = POLL_STARTING_ITEM
 
     companion object {
@@ -16,7 +32,7 @@ class ChatViewModel(private val model: ChatModel) : BaseViewModel() {
         private const val POLL_DELAY_IN_MILLIS = 5000L
     }
 
-    fun getChatItems(skipTo: Int = POLL_STARTING_ITEM) {
+    private fun getChatItems(skipTo: Int = POLL_STARTING_ITEM) {
         previousSkipValue = skipTo
         viewModelScope.launchOnIO(
             block = { model.getProducts(skipTo) },
@@ -25,10 +41,44 @@ class ChatViewModel(private val model: ChatModel) : BaseViewModel() {
         )
     }
 
-    // TODO - Handle cases where 100th item is reached, restarting the count and the list.
-    private fun handleChatItemsSuccess(result: ChatData) {
+    private fun handleTextInput(text: String) {
+        commandText.value = ""
+        when (ChatCommand.getFromValue(text)) {
+            ChatCommand.START -> {
+                Timber.d("START command received.")
+                addItemToList(ChatCommandListItemViewModel(ChatCommandData(System.currentTimeMillis(), text)))
+                getChatItems()
+            }
+            ChatCommand.STOP -> {
+                Timber.d("STOP command received.")
+                addItemToList(ChatCommandListItemViewModel(ChatCommandData(System.currentTimeMillis(), text)))
+            }
+            ChatCommand.PAUSE -> {
+                Timber.d("PAUSE command received.")
+                addItemToList(ChatCommandListItemViewModel(ChatCommandData(System.currentTimeMillis(), text)))
+            }
+            ChatCommand.RESUME -> {
+                Timber.d("RESUME command received.")
+                addItemToList(ChatCommandListItemViewModel(ChatCommandData(System.currentTimeMillis(), text)))
+            }
+            null -> {
+                Timber.d("INVALID command received!")
+                errorEvent.value = Event("Invalid command received!")
+            }
+        }
+    }
+
+    private fun addItemToList(item: ListItemViewModel) {
+        val currentListItems = listItems.safeValue(emptyList()).toMutableList()
+        currentListItems.add(item)
+        listItems.postValue(currentListItems)
+        onListItemAddedEvent.postValue(Event(true))
+    }
+
+    // TODO - CRITICAL - Handle cases where 100th item is reached, restarting the count and the list.
+    private fun handleChatItemsSuccess(result: ChatResponseData) {
         Timber.d("Successfully retrieved chat items from the network.")
-        Timber.d("Retrieved item is: ${result.id}, ${result.description}")
+        addItemToList(ChatResponseListItemViewModel(result))
         waitAndRun(POLL_DELAY_IN_MILLIS, viewModelScope) { getChatItems(previousSkipValue + 1) }
     }
 
