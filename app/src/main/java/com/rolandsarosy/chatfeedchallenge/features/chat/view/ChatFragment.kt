@@ -1,9 +1,11 @@
 package com.rolandsarosy.chatfeedchallenge.features.chat.view
 
+import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.inputmethod.InputMethodManager
 import com.rolandsarosy.chatfeedchallenge.common.base.BaseFragment
 import com.rolandsarosy.chatfeedchallenge.common.base.ErrorObserver
 import com.rolandsarosy.chatfeedchallenge.common.extensions.safeValue
@@ -24,13 +26,16 @@ class ChatFragment : BaseFragment<FragmentChatBinding>(FragmentChatBinding::infl
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         viewModel.errorEvent.observe(viewLifecycleOwner, defaultErrorObserver(requireContext()))
+        viewModel.onHideKeyboardEvent.observe(viewLifecycleOwner) { event -> event.getContentIfNotHandled()?.let { if (it) hideSoftKeyboard() } }
         // TODO - TECH DEBT - This is a temporary solution to scroll to the bottom of the list.
         viewModel.onListItemAddedEvent.observe(viewLifecycleOwner) { event ->
             event.getContentIfNotHandled()?.let { isItemAdded ->
-                if (isItemAdded) {
-                    binding.chatList.smoothScrollToPosition(viewModel.listItems.safeValue(emptyList()).size - 1)
-                }
+                if (isItemAdded) binding.chatList.smoothScrollToPosition(viewModel.listItems.safeValue(emptyList()).size - 1)
             }
         }
+    }
+
+    private fun hideSoftKeyboard() {
+        (requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager).hideSoftInputFromWindow(view?.windowToken, 0)
     }
 }

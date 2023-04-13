@@ -48,6 +48,8 @@
                 android:inputType="text"
                 android:maxLines="1"
                 bind:onEditorActionCompleteListener="@{viewModel.editorActionListener}"
+                bind:onFocusChangeListener="@{viewModel.onFocusChangeListener}"
+                bind:shouldClearFocus="@{viewModel.shouldClearFocus}"
                 bind:text="@={viewModel.commandText}" />
         </com.google.android.material.textfield.TextInputLayout>
     </androidx.constraintlayout.widget.ConstraintLayout>

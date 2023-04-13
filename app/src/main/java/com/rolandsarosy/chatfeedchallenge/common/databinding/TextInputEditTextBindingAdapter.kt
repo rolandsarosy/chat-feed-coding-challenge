@@ -1,5 +1,6 @@
 package com.rolandsarosy.chatfeedchallenge.common.databinding
 
+import android.view.View
 import android.widget.TextView.OnEditorActionListener
 import androidx.core.widget.doAfterTextChanged
 import androidx.databinding.BindingAdapter
@@ -22,7 +23,15 @@ object TextInputEditTextBindingAdapter {
 
     @JvmStatic
     @BindingAdapter("onEditorActionCompleteListener")
-    fun addEditorActionCompleteListener(editText: TextInputEditText, listener: OnEditorActionListener) {
-        editText.setOnEditorActionListener(listener)
+    fun TextInputEditText.addEditorActionCompleteListener(listener: OnEditorActionListener) = this.setOnEditorActionListener(listener)
+
+    @JvmStatic
+    @BindingAdapter("shouldClearFocus")
+    fun TextInputEditText.clearFocus(shouldClearFocus: Boolean) = if (shouldClearFocus) this.clearFocus() else Unit
+
+    @JvmStatic
+    @BindingAdapter("onFocusChangeListener")
+    fun TextInputEditText.addDataBindingOnFocusChangeListener(listener: View.OnFocusChangeListener) {
+        this.onFocusChangeListener = listener
     }
 }

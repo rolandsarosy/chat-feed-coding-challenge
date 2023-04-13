@@ -19,8 +19,13 @@ import timber.log.Timber
 
 class ChatViewModel(private val model: ChatModel) : BaseViewModel() {
     val listItems = MutableLiveData<List<ListItemViewModel>>().default(emptyList())
-    val onListItemAddedEvent = MutableLiveData<Event<Boolean>>()
     val commandText = MutableLiveData<String>().default("")
+
+    val onListItemAddedEvent = MutableLiveData<Event<Boolean>>()
+    val onHideKeyboardEvent = MutableLiveData<Event<Boolean>>()
+    val shouldClearFocus = MutableLiveData<Boolean>().default(false)
+
+    val onFocusChangeListener = View.OnFocusChangeListener { _, isFocused -> if (!isFocused) onHideKeyboardEvent.value = Event(true) }
     val editorActionListener = OnEditorActionListener { textView, _, _ ->
         handleTextInput(textView.text.toString().trim().uppercase())
         return@OnEditorActionListener true
@@ -46,6 +51,7 @@ class ChatViewModel(private val model: ChatModel) : BaseViewModel() {
 
     private fun handleTextInput(text: String) {
         commandText.value = ""
+        shouldClearFocus.value = true
         when (ChatCommand.getFromValue(text)) {
             ChatCommand.START -> {
                 Timber.d("START command received.")
