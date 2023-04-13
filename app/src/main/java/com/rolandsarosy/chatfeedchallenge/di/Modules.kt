@@ -26,7 +26,7 @@ val networkModule = module {
     single { Moshi.Builder().build() }
 
     single(named(OK_HTTP)) { createOkHttpClient() }
-    single(named(RETROFIT)) { createRetrofit(get(), get(named(RETROFIT))) }
+    single(named(RETROFIT)) { createRetrofit(get(), get(named(OK_HTTP))) }
     single { createEndpoint(get(named(RETROFIT))) }
 }
 

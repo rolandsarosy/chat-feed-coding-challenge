@@ -1,7 +1,7 @@
 package com.rolandsarosy.chatfeedchallenge.di
 
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import androidx.appcompat.app.AppCompatActivity
 import com.rolandsarosy.chatfeedchallenge.R
 
 class MainActivity : AppCompatActivity() {

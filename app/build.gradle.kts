@@ -57,7 +57,7 @@ android {
             applicationIdSuffix = ".production"
 
             resValue("string", "app_name", "Chat Feed Challenge")
-            buildConfigField("String", "BASE_URL", "\"https://dummyjson.com/products\"")
+            buildConfigField("String", "BASE_URL", "\"https://dummyjson.com\"")
         }
 
         create("staging") {
@@ -66,7 +66,7 @@ android {
             applicationIdSuffix = ".staging"
 
             resValue("string", "app_name", "Chat Feed Challenge Staging")
-            buildConfigField("String", "BASE_URL", "\"https://dummyjson.com/products\"")
+            buildConfigField("String", "BASE_URL", "\"https://dummyjson.com\"")
         }
     }
 }
