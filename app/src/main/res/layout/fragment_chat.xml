@@ -38,7 +38,7 @@
             app:endIconDrawable="@drawable/ic_enter"
             app:endIconMode="custom"
             app:layout_constraintBottom_toBottomOf="parent"
-            bind:onEndIconClickListener="@{viewModel::onInputFieldEndIconClicked}">
+            bind:onEndIconClickListener="@{viewModel::onEnterCommand}">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/chat_input_field"
@@ -49,7 +49,7 @@
                 android:maxLines="1"
                 bind:onEditorActionCompleteListener="@{viewModel.editorActionListener}"
                 bind:onFocusChangeListener="@{viewModel.onFocusChangeListener}"
-                bind:shouldClearFocus="@{viewModel.shouldClearFocus}"
+                bind:shouldClearFocus="@{viewModel.shouldClearInputFocus}"
                 bind:text="@={viewModel.commandText}" />
         </com.google.android.material.textfield.TextInputLayout>
     </androidx.constraintlayout.widget.ConstraintLayout>

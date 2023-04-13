@@ -23,11 +23,11 @@ class ChatViewModel(private val model: ChatModel) : BaseViewModel() {
 
     val onListItemAddedEvent = MutableLiveData<Event<Boolean>>()
     val onHideKeyboardEvent = MutableLiveData<Event<Boolean>>()
-    val shouldClearFocus = MutableLiveData<Boolean>().default(false)
+    val shouldClearInputFocus = MutableLiveData<Boolean>().default(false)
 
     val onFocusChangeListener = View.OnFocusChangeListener { _, isFocused -> if (!isFocused) onHideKeyboardEvent.value = Event(true) }
     val editorActionListener = OnEditorActionListener { textView, _, _ ->
-        handleTextInput(textView.text.toString().trim().uppercase())
+        onEnterCommand(textView)
         return@OnEditorActionListener true
     }
 
@@ -38,25 +38,24 @@ class ChatViewModel(private val model: ChatModel) : BaseViewModel() {
         private const val POLL_DELAY_IN_MILLIS = 5000L
     }
 
-    fun onInputFieldEndIconClicked(view: View) = handleTextInput(commandText.safeValue("").trim().uppercase())
+    fun onEnterCommand(view: View) = handleTextInput(commandText.safeValue(""))
 
-    private fun getChatItems(skipTo: Int = POLL_STARTING_ITEM) {
+    private fun requestChatItems(skipTo: Int = POLL_STARTING_ITEM) {
         previousSkipValue = skipTo
         viewModelScope.launchOnIO(
             block = { model.getProducts(skipTo) },
             success = { handleChatItemsSuccess(it) },
-            apiFailure = { handleChatItemsError(it) }
-        )
+            apiFailure = { handleChatItemsError(it) })
     }
 
     private fun handleTextInput(text: String) {
         commandText.value = ""
-        shouldClearFocus.value = true
-        when (ChatCommand.getFromValue(text)) {
+        shouldClearInputFocus.value = true
+        when (ChatCommand.getFromValue(text.trim().uppercase())) {
             ChatCommand.START -> {
                 Timber.d("START command received.")
                 addItemToList(ChatCommandListItemViewModel(ChatCommandData(System.currentTimeMillis(), text)))
-                getChatItems()
+                requestChatItems()
             }
             ChatCommand.STOP -> {
                 Timber.d("STOP command received.")
@@ -88,7 +87,7 @@ class ChatViewModel(private val model: ChatModel) : BaseViewModel() {
     private fun handleChatItemsSuccess(result: ChatResponseData) {
         Timber.d("Successfully retrieved chat items from the network.")
         addItemToList(ChatResponseListItemViewModel(result))
-        waitAndRun(POLL_DELAY_IN_MILLIS, viewModelScope) { getChatItems(previousSkipValue + 1) }
+        waitAndRun(POLL_DELAY_IN_MILLIS, viewModelScope) { requestChatItems(previousSkipValue + 1) }
     }
 
     private fun handleChatItemsError(error: NetworkCallError) {
