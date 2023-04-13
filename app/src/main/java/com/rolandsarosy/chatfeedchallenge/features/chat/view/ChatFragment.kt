@@ -28,7 +28,7 @@ class ChatFragment : BaseFragment<FragmentChatBinding>(FragmentChatBinding::infl
         viewModel.errorEvent.observe(viewLifecycleOwner, defaultErrorObserver(requireContext()))
         viewModel.onHideKeyboardEvent.observe(viewLifecycleOwner) { event -> event.getContentIfNotHandled()?.let { if (it) hideSoftKeyboard() } }
         // TODO - TECH DEBT - This is a temporary solution to scroll to the bottom of the list.
-        viewModel.onListItemAddedEvent.observe(viewLifecycleOwner) { event ->
+        viewModel.onScrollToBottomEvent.observe(viewLifecycleOwner) { event ->
             event.getContentIfNotHandled()?.let { isItemAdded ->
                 if (isItemAdded) binding.chatList.smoothScrollToPosition(viewModel.listItems.safeValue(emptyList()).size - 1)
             }

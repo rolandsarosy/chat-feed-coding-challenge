@@ -8,20 +8,21 @@ import com.rolandsarosy.chatfeedchallenge.common.base.BaseViewModel
 import com.rolandsarosy.chatfeedchallenge.common.event.Event
 import com.rolandsarosy.chatfeedchallenge.common.extensions.default
 import com.rolandsarosy.chatfeedchallenge.common.extensions.safeValue
-import com.rolandsarosy.chatfeedchallenge.common.extensions.waitAndRun
 import com.rolandsarosy.chatfeedchallenge.common.recyclerview.ListItemViewModel
 import com.rolandsarosy.chatfeedchallenge.data.domainobjects.ChatCommand
 import com.rolandsarosy.chatfeedchallenge.data.domainobjects.ChatCommandData
 import com.rolandsarosy.chatfeedchallenge.data.domainobjects.ChatResponseData
+import com.rolandsarosy.chatfeedchallenge.features.chat.ChatPollingEngine
+import com.rolandsarosy.chatfeedchallenge.features.chat.PollingEngineMediator
 import com.rolandsarosy.chatfeedchallenge.features.chat.model.ChatModel
 import com.rolandsarosy.chatfeedchallenge.network.NetworkCallErrorResponse.NetworkCallError
 import timber.log.Timber
 
-class ChatViewModel(private val model: ChatModel) : BaseViewModel() {
+class ChatViewModel(private val model: ChatModel) : BaseViewModel(), PollingEngineMediator {
     val listItems = MutableLiveData<List<ListItemViewModel>>().default(emptyList())
     val commandText = MutableLiveData<String>().default("")
 
-    val onListItemAddedEvent = MutableLiveData<Event<Boolean>>()
+    val onScrollToBottomEvent = MutableLiveData<Event<Boolean>>()
     val onHideKeyboardEvent = MutableLiveData<Event<Boolean>>()
     val shouldClearInputFocus = MutableLiveData<Boolean>().default(false)
 
@@ -31,66 +32,74 @@ class ChatViewModel(private val model: ChatModel) : BaseViewModel() {
         return@OnEditorActionListener true
     }
 
-    private var previousSkipValue = POLL_STARTING_ITEM
+    private val pollingEngine: ChatPollingEngine by lazy { ChatPollingEngine(this) }
 
-    companion object {
-        private const val POLL_STARTING_ITEM = 0
-        private const val POLL_DELAY_IN_MILLIS = 5000L
+    override fun onPollingEngineRequestItem(skipTo: Int) = requestChatResponseItemFromNetwork(skipTo, false)
+
+    override fun onPollingEngineRequestItemSilently(skipTo: Int) = requestChatResponseItemFromNetwork(skipTo, true)
+
+    override fun onPollingEngineDisplayCommand(commandText: String) = addListItem(createChatCommandListItem(commandText))
+
+    override fun onPollingEngineInvalidCommand() {
+        errorEvent.value = Event("Invalid command!")
     }
+
+    override fun onPollingEngineDischargeItems(itemsToAdd: MutableList<ListItemViewModel>) = addMultipleListItems(itemsToAdd)
 
     fun onEnterCommand(view: View) = handleTextInput(commandText.safeValue(""))
 
-    private fun requestChatItems(skipTo: Int = POLL_STARTING_ITEM) {
-        previousSkipValue = skipTo
+    private fun requestChatResponseItemFromNetwork(skipTo: Int, isSilent: Boolean) {
         viewModelScope.launchOnIO(
             block = { model.getProducts(skipTo) },
-            success = { handleChatItemsSuccess(it) },
-            apiFailure = { handleChatItemsError(it) })
+            success = { handleChatResponseItemSuccess(it, isSilent) },
+            apiFailure = { handleChatResponseItemError(it) }
+        )
     }
 
     private fun handleTextInput(text: String) {
         commandText.value = ""
         shouldClearInputFocus.value = true
-        when (ChatCommand.getFromValue(text.trim().uppercase())) {
-            ChatCommand.START -> {
-                Timber.d("START command received.")
-                addItemToList(ChatCommandListItemViewModel(ChatCommandData(System.currentTimeMillis(), text)))
-                requestChatItems()
-            }
-            ChatCommand.STOP -> {
-                Timber.d("STOP command received.")
-                addItemToList(ChatCommandListItemViewModel(ChatCommandData(System.currentTimeMillis(), text)))
-            }
-            ChatCommand.PAUSE -> {
-                Timber.d("PAUSE command received.")
-                addItemToList(ChatCommandListItemViewModel(ChatCommandData(System.currentTimeMillis(), text)))
-            }
-            ChatCommand.RESUME -> {
-                Timber.d("RESUME command received.")
-                addItemToList(ChatCommandListItemViewModel(ChatCommandData(System.currentTimeMillis(), text)))
-            }
-            null -> {
-                Timber.d("INVALID command received!")
-                errorEvent.value = Event("Invalid command received!")
-            }
+        val command = ChatCommand.getFromValue(text.trim().uppercase())
+        if (command != null) {
+            pollingEngine.handleCommand(command)
+        } else {
+            onPollingEngineInvalidCommand()
         }
     }
 
-    private fun addItemToList(item: ListItemViewModel) {
+    private fun handleChatResponseItemSuccess(result: ChatResponseData, isSilent: Boolean) {
+        Timber.d("Successfully received a chat response item from the network.")
+        if (isSilent) {
+            pollingEngine.storeListItem(createChatResponseListItem(result))
+        } else {
+            addListItem(createChatResponseListItem(result))
+        }
+        pollingEngine.currentPage++
+    }
+
+    private fun handleChatResponseItemError(error: NetworkCallError) {
+        Timber.e("There was an error while requesting a chat response item from the network:", error.message)
+    }
+
+    private fun createChatResponseListItem(data: ChatResponseData): ChatResponseListItemViewModel {
+        return ChatResponseListItemViewModel(data)
+    }
+
+    private fun createChatCommandListItem(commandText: String): ChatCommandListItemViewModel {
+        return ChatCommandListItemViewModel(ChatCommandData(System.currentTimeMillis(), commandText))
+    }
+
+    private fun addListItem(item: ListItemViewModel) {
         val currentListItems = listItems.safeValue(emptyList()).toMutableList()
         currentListItems.add(item)
-        listItems.postValue(currentListItems)
-        onListItemAddedEvent.postValue(Event(true))
+        viewModelScope.launchOnMainThread { listItems.value = currentListItems }
+        onScrollToBottomEvent.postValue(Event(true))
     }
 
-    // TODO - CRITICAL - Handle cases where 100th item is reached, restarting the count and the list.
-    private fun handleChatItemsSuccess(result: ChatResponseData) {
-        Timber.d("Successfully retrieved chat items from the network.")
-        addItemToList(ChatResponseListItemViewModel(result))
-        waitAndRun(POLL_DELAY_IN_MILLIS, viewModelScope) { requestChatItems(previousSkipValue + 1) }
-    }
-
-    private fun handleChatItemsError(error: NetworkCallError) {
-        Timber.e("An error occurred while trying to retrieve chat items from the network.", error.message)
+    private fun addMultipleListItems(itemsToAdd: MutableList<ListItemViewModel>) {
+        val currentListItems = listItems.safeValue(emptyList()).toMutableList()
+        currentListItems.addAll(itemsToAdd)
+        listItems.value = currentListItems
+        onScrollToBottomEvent.postValue(Event(true))
     }
 }

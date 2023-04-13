@@ -2,15 +2,13 @@ package com.rolandsarosy.chatfeedchallenge.common.base
 
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.rolandsarosy.chatfeedchallenge.common.event.Event
 import com.rolandsarosy.chatfeedchallenge.network.ModelResponse
 import com.rolandsarosy.chatfeedchallenge.network.collectResponse
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.CoroutineStart
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.io.IOException
 
@@ -40,6 +38,10 @@ abstract class BaseViewModel : ViewModel() {
                 networkFailure = networkFailure ?: { exception -> handleNetworkFailure(exception) },
             )
         }
+    }
+
+    protected fun CoroutineScope.launchOnMainThread(block: () -> Unit) {
+        this.launch { withContext(Dispatchers.Main) { block.invoke() } }
     }
 
     private fun handleNetworkFailure(exception: IOException) {
