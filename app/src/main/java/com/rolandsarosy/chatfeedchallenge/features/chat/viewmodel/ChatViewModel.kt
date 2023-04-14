@@ -46,6 +46,11 @@ class ChatViewModel(private val model: ChatModel) : BaseViewModel(), PollingEngi
 
     override fun onPollingEngineDischargeItems(itemsToAdd: MutableList<ListItemViewModel>) = addItemsToList(itemsToAdd)
 
+    override fun onCleared() {
+        super.onCleared()
+        pollingEngine.destroyFlow()
+    }
+
     fun onEnterCommand(view: View) = handleTextInput(commandText.safeValue(""))
 
     private fun requestChatResponseItemFromNetwork(skipTo: Int, isSilent: Boolean) {

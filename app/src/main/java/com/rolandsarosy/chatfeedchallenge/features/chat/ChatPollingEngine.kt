@@ -44,17 +44,16 @@ class ChatPollingEngine(private val engineMediator: PollingEngineMediator) {
 
     fun storeListItem(listItem: ListItemViewModel) = storedListItems.add(listItem)
 
-    // Full disclosure, this is dangerous and this might actually leak if the surrounding ViewModel is destroyed. I'm not 100% sure if
-    // that's the case as I'd need to do some LeakCanary testing with special cases but that was beyond the scope of this project. Besides the VM
-    // being destroyed, other cases is handled and should not cause leaks.
+    fun destroyFlow() {
+        stopTicker()
+        job = null
+    }
+
     @OptIn(DelicateCoroutinesApi::class)
     private fun startTicker() {
         job = GlobalScope.launch { tickerFlow.launchIn(this) }
     }
 
-    // Full disclosure, this is dangerous and this might actually leak if the surrounding ViewModel is destroyed. I'm not 100% sure if
-    // that's the case as I'd need to do some LeakCanary testing with special cases but that was beyond the scope of this project.  Besides the VM
-    // being destroyed, other cases is handled and should not cause leaks.
     @OptIn(DelicateCoroutinesApi::class)
     private fun stopTicker() = GlobalScope.launch { job?.cancel() }
 
