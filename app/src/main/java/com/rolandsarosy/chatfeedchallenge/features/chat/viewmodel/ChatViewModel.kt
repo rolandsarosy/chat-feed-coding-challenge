@@ -38,13 +38,13 @@ class ChatViewModel(private val model: ChatModel) : BaseViewModel(), PollingEngi
 
     override fun onPollingEngineRequestItemSilently(skipTo: Int) = requestChatResponseItemFromNetwork(skipTo, true)
 
-    override fun onPollingEngineDisplayCommand(commandText: String) = addListItem(createChatCommandListItem(commandText))
+    override fun onPollingEngineDisplayCommand(commandText: String) = addItemsToList(listOf(createChatCommandListItem(commandText)))
 
     override fun onPollingEngineInvalidCommand() {
         errorEvent.value = Event("Invalid command!")
     }
 
-    override fun onPollingEngineDischargeItems(itemsToAdd: MutableList<ListItemViewModel>) = addMultipleListItems(itemsToAdd)
+    override fun onPollingEngineDischargeItems(itemsToAdd: MutableList<ListItemViewModel>) = addItemsToList(itemsToAdd)
 
     fun onEnterCommand(view: View) = handleTextInput(commandText.safeValue(""))
 
@@ -72,7 +72,7 @@ class ChatViewModel(private val model: ChatModel) : BaseViewModel(), PollingEngi
         if (isSilent) {
             pollingEngine.storeListItem(createChatResponseListItem(result))
         } else {
-            addListItem(createChatResponseListItem(result))
+            addItemsToList(listOf(createChatResponseListItem(result)))
         }
         pollingEngine.currentPage++
     }
@@ -92,17 +92,10 @@ class ChatViewModel(private val model: ChatModel) : BaseViewModel(), PollingEngi
         return ChatCommandListItemViewModel(ChatCommandData(System.currentTimeMillis(), commandText))
     }
 
-    private fun addListItem(item: ListItemViewModel) {
-        val currentListItems = listItems.safeValue(emptyList()).toMutableList()
-        currentListItems.add(item)
-        viewModelScope.launchOnMainThread { listItems.value = currentListItems }
-        onScrollToBottomEvent.postValue(Event(true))
-    }
-
-    private fun addMultipleListItems(itemsToAdd: MutableList<ListItemViewModel>) {
+    private fun addItemsToList(itemsToAdd: List<ListItemViewModel>) {
         val currentListItems = listItems.safeValue(emptyList()).toMutableList()
         currentListItems.addAll(itemsToAdd)
-        listItems.value = currentListItems
+        viewModelScope.launchOnMainThread { listItems.value = currentListItems }
         onScrollToBottomEvent.postValue(Event(true))
     }
 }
