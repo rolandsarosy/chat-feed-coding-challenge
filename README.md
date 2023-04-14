@@ -53,7 +53,7 @@ Additionally, there is a project-level code-style file with custom values *(such
 The specification requires the following: 
 > Every 5 seconds a new feed is fetched from the API and should be added to the displayed feeds list.
 
-It is unclear whether that behaviour entails. There are two options:
+It is unclear what that behaviour entails. There are two options:
 
 **Option 1**: The 5-second "ticker" should run independently of the polling's result, with no regard to its network or processing delay.
 
