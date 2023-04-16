@@ -2,7 +2,6 @@ package com.rolandsarosy.chatfeedchallenge.common.base
 
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import com.rolandsarosy.chatfeedchallenge.common.event.Event
 import com.rolandsarosy.chatfeedchallenge.network.ModelResponse
 import com.rolandsarosy.chatfeedchallenge.network.collectResponse
