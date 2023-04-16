@@ -43,6 +43,8 @@ Dependencies are as follows:
 |`Moshi`|JSON library.|Yes|
 |`Coroutines`|Concurrency library.|Yes|
 |`Timber`|Modern logging utility.|Yes|
+|`Junit4`|Unit testing utility.|Yes|
+|`MockK`|Kotlin mocking library for testing.|Yes|
 
 ## Code quality & style
 Code quality and style is handled by `Detekt`. The currently active rule set can be found in the `app` module's root folder, under the name `detekt-config`. The rule set is strict, has a 10-warning limit, after which, it'll fail a build. 
