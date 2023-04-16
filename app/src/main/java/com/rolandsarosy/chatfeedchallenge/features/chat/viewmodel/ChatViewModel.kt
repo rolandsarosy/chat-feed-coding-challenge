@@ -22,7 +22,6 @@ class ChatViewModel(private val model: ChatModel) : BaseViewModel(), PollingEngi
     val listItems = MutableLiveData<List<ListItemViewModel>>().default(emptyList())
     val commandText = MutableLiveData<String>().default("")
 
-    val onScrollToBottomEvent = MutableLiveData<Event<Boolean>>()
     val onHideKeyboardEvent = MutableLiveData<Event<Boolean>>()
     val shouldClearInputFocus = MutableLiveData<Boolean>().default(false)
 
@@ -101,6 +100,5 @@ class ChatViewModel(private val model: ChatModel) : BaseViewModel(), PollingEngi
         val currentListItems = listItems.safeValue(emptyList()).toMutableList()
         currentListItems.addAll(itemsToAdd)
         viewModelScope.launchOnMainThread { listItems.value = currentListItems }
-        onScrollToBottomEvent.postValue(Event(true))
     }
 }

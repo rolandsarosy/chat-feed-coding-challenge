@@ -8,7 +8,6 @@ import android.view.ViewGroup
 import android.view.inputmethod.InputMethodManager
 import com.rolandsarosy.chatfeedchallenge.common.base.BaseFragment
 import com.rolandsarosy.chatfeedchallenge.common.base.ErrorObserver
-import com.rolandsarosy.chatfeedchallenge.common.extensions.safeValue
 import com.rolandsarosy.chatfeedchallenge.databinding.FragmentChatBinding
 import com.rolandsarosy.chatfeedchallenge.features.chat.viewmodel.ChatViewModel
 import org.koin.androidx.viewmodel.ext.android.viewModel
@@ -27,12 +26,6 @@ class ChatFragment : BaseFragment<FragmentChatBinding>(FragmentChatBinding::infl
         super.onViewCreated(view, savedInstanceState)
         viewModel.errorEvent.observe(viewLifecycleOwner, defaultErrorObserver(requireContext()))
         viewModel.onHideKeyboardEvent.observe(viewLifecycleOwner) { event -> event.getContentIfNotHandled()?.let { if (it) hideSoftKeyboard() } }
-        // TODO - TECH DEBT - This is a temporary solution to scroll to the bottom of the list.
-        viewModel.onScrollToBottomEvent.observe(viewLifecycleOwner) { event ->
-            event.getContentIfNotHandled()?.let { isItemAdded ->
-                if (isItemAdded) binding.chatList.smoothScrollToPosition(viewModel.listItems.safeValue(emptyList()).size - 1)
-            }
-        }
     }
 
     private fun hideSoftKeyboard() {
