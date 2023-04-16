@@ -107,8 +107,8 @@ This behaviour leaves that time-frame when we are waiting for network responses,
 A potential resolution would be to make sure that the discharging of single items (and incrementing the page counter) is handled by the `ChatPollingEngine` internally. In that case, after a successful network response, the `ViewModel` would just report back to the `Engine` with the result item, and the `Engine` would separately tell the `ViewModel` to discharge the item if it deems it appropriate, while incrementing the page counter.
 
 ## Credits
-This is work is my of my own creation. The architecture and project skeleton itself is my own, as I've been using and updating it as the years went by. 
+This work is my of my own creation. The architecture and project skeleton itself is my own, as I've been using and updating it as the years went by. 
 
 A larger chunk of code that did not originate from me was the custom `CallAdapterFactory` for Coroutines and Retrofit. I've created that when I transitioned from RXJava to Coroutines. It has been improved upon since then, however. 
 
-Generally speaking, there was some extensive Googling involved, and also asking ChatGPT question like "How can I destroy or cancel a Flow in a way that it doesn't leak?".
+Generally speaking, there was some extensive Googling involved, and also asking ChatGPT questions like "How can I destroy or cancel a Flow in a way that it doesn't leak?".
