@@ -136,6 +136,15 @@ dependencies {
     // Timber logger
     val timberVersion by extra("5.0.1")
     implementation("com.jakewharton.timber:timber:$timberVersion")
+
+    // JUnit4 for testing
+    val jUnitVersion by extra("4.13.2")
+    testImplementation("junit:junit:$jUnitVersion")
+
+    // Mockk for testing
+    val mockkVersion by extra("1.12.0")
+    testImplementation("io.mockk:mockk:$mockkVersion")
+
 }
 
 tasks.preBuild.dependsOn(tasks.detekt)
