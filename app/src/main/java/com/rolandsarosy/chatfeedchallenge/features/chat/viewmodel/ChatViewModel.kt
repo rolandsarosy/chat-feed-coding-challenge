@@ -48,7 +48,7 @@ class ChatViewModel(private val model: ChatModel) : BaseViewModel(), PollingEngi
 
     override fun onCleared() {
         super.onCleared()
-        pollingEngine.destroyFlow()
+        pollingEngine.destroyTicker()
     }
 
     fun onEnterCommand(view: View) = handleTextInput(commandText.safeValue(""))
@@ -83,7 +83,7 @@ class ChatViewModel(private val model: ChatModel) : BaseViewModel(), PollingEngi
     }
 
     // Ideally, we'd handle errors gracefully here, such as having a "lives" system, where we would, let's say, reset the screen
-    // After 3 consequitive failures. However, this was unspecified and frankly, outside of the scope.
+    // After 3 consecutive failures. However, this was unspecified and frankly, outside of the scope.
     private fun handleChatResponseItemError(error: NetworkCallError) {
         Timber.e("There was an error while requesting a chat response item from the network:", error.message)
         errorEvent.value = Event(error.message)

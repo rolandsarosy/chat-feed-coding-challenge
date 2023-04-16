@@ -44,18 +44,16 @@ class ChatPollingEngine(private val engineMediator: PollingEngineMediator) {
 
     fun storeListItem(listItem: ListItemViewModel) = storedListItems.add(listItem)
 
-    fun destroyFlow() {
-        stopTicker()
+    @OptIn(DelicateCoroutinesApi::class)
+    fun destroyTicker() = GlobalScope.launch {
+        job?.cancel()
         job = null
     }
 
     @OptIn(DelicateCoroutinesApi::class)
-    private fun startTicker() {
+    private fun launchTicker() {
         job = GlobalScope.launch { tickerFlow.launchIn(this) }
     }
-
-    @OptIn(DelicateCoroutinesApi::class)
-    private fun stopTicker() = GlobalScope.launch { job?.cancel() }
 
     private fun requestNewAction() {
         when (state) {
@@ -66,10 +64,10 @@ class ChatPollingEngine(private val engineMediator: PollingEngineMediator) {
     }
 
     private fun stopAndReset() {
-        stopTicker()
+        destroyTicker()
         state = ChatPollingState.STOPPED
         engineMediator.onPollingEngineDisplayCommand(ChatCommand.STOP.text)
-        storedListItems = mutableListOf()
+        storedListItems.clear()
         currentPage = STARTING_POLLING_PAGE
     }
 
@@ -80,7 +78,7 @@ class ChatPollingEngine(private val engineMediator: PollingEngineMediator) {
             ChatPollingState.STOPPED -> {
                 state = ChatPollingState.FETCHING
                 engineMediator.onPollingEngineDisplayCommand(ChatCommand.START.text)
-                startTicker()
+                launchTicker()
             }
         }
     }
@@ -110,7 +108,7 @@ class ChatPollingEngine(private val engineMediator: PollingEngineMediator) {
                 state = ChatPollingState.FETCHING
                 engineMediator.onPollingEngineDisplayCommand(ChatCommand.RESUME.text)
                 engineMediator.onPollingEngineDischargeItems(storedListItems)
-                storedListItems = mutableListOf()
+                storedListItems.clear()
             }
             ChatPollingState.STOPPED -> engineMediator.onPollingEngineInvalidCommand()
             ChatPollingState.FETCHING -> engineMediator.onPollingEngineInvalidCommand()
