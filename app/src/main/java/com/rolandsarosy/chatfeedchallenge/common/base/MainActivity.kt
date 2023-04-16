@@ -1,4 +1,4 @@
-package com.rolandsarosy.chatfeedchallenge.di
+package com.rolandsarosy.chatfeedchallenge.common.base
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
