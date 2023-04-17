@@ -90,22 +90,6 @@ The way that automatic scrolling to the bottom of the list is handled right now 
 
 Currently, `adjustResize` is used at a `windowSoftInputMode` panning option, but other options, or a custom implementation might be better. When the software keyboard appears, the list is currently not scrolled to the new bottom with `adjustResize` for example. 
 
-## Known issues
-
-> Issue where, in cases of long network or processing delays, the chat could display items even though a new command has been issued and displayed, which would've prevented that item of displaying. 
-
-This is an unfortunate bug with the way the "ticker" works currently. As commented in the `ChatPollingEngine`, the timer runs independently of the polling's result, with no regard to its network or processing delay. Imagine the following case:
-
--  A new network request is sent, as the `ChatPollingEngine` is currently fetching items.
-- There is an average 900ms network response time
-- A new `STOP` command arrives during the 900ms time-frame. 
-- The expected behaviour would be that the application disregards the result of the network request.
-- However, the observed behaviour is that the `STOP` command is displayed, as expected, but the network response that was already started, will display after it finishes. 
-
-This behaviour leaves that time-frame when we are waiting for network responses, extremely dangerous, as they're asynchronous functions. 
-
-A potential resolution would be to make sure that the discharging of single items (and incrementing the page counter) is handled by the `ChatPollingEngine` internally. In that case, after a successful network response, the `ViewModel` would just report back to the `Engine` with the result item, and the `Engine` would separately tell the `ViewModel` to discharge the item if it deems it appropriate, while incrementing the page counter.
-
 ## Credits
 This work is my of my own creation. The architecture and project skeleton itself is my own, as I've been using and updating it as the years went by. 
 
