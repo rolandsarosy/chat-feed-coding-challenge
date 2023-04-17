@@ -8,7 +8,7 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.launchIn
 
 class ChatPollingEngine(private val engineMediator: PollingEngineMediator) {
-    var currentPage = STARTING_POLLING_PAGE
+    private var currentPage = STARTING_POLLING_PAGE
         set(value) {
             field = if (value >= MAX_POLLING_PAGE) {
                 STARTING_POLLING_PAGE
@@ -42,7 +42,19 @@ class ChatPollingEngine(private val engineMediator: PollingEngineMediator) {
         }
     }
 
-    fun storeListItem(listItem: ListItemViewModel) = storedListItems.add(listItem)
+    fun handleItemSuccess(listItem: ListItemViewModel) {
+        when (state) {
+            ChatPollingState.FETCHING -> {
+                engineMediator.onPollingEngineDischargeItems(listOf(listItem))
+                currentPage++
+            }
+            ChatPollingState.PAUSED -> {
+                storedListItems.add(listItem)
+                currentPage++
+            }
+            ChatPollingState.STOPPED -> Unit
+        }
+    }
 
     @OptIn(DelicateCoroutinesApi::class)
     fun destroyTicker() = GlobalScope.launch {
@@ -58,7 +70,7 @@ class ChatPollingEngine(private val engineMediator: PollingEngineMediator) {
     private fun requestNewAction() {
         when (state) {
             ChatPollingState.FETCHING -> engineMediator.onPollingEngineRequestItem(currentPage)
-            ChatPollingState.PAUSED -> engineMediator.onPollingEngineRequestItemSilently(currentPage)
+            ChatPollingState.PAUSED -> engineMediator.onPollingEngineRequestItem(currentPage)
             ChatPollingState.STOPPED -> throw IllegalStateException("Ticking should not have happened in the 'STOPPED' state of the engine.")
         }
     }
@@ -118,8 +130,7 @@ class ChatPollingEngine(private val engineMediator: PollingEngineMediator) {
 
 interface PollingEngineMediator {
     fun onPollingEngineRequestItem(skipTo: Int)
-    fun onPollingEngineRequestItemSilently(skipTo: Int)
     fun onPollingEngineDisplayCommand(commandText: String)
     fun onPollingEngineInvalidCommand()
-    fun onPollingEngineDischargeItems(itemsToAdd: MutableList<ListItemViewModel>)
+    fun onPollingEngineDischargeItems(itemsToAdd: List<ListItemViewModel>)
 }

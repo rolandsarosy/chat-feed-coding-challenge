@@ -34,17 +34,13 @@ class ChatViewModel(private val model: ChatModel) : BaseViewModel(), PollingEngi
 
     private val pollingEngine: ChatPollingEngine by lazy { ChatPollingEngine(this) }
 
-    override fun onPollingEngineRequestItem(skipTo: Int) = requestChatResponseItemFromNetwork(skipTo, false)
-
-    override fun onPollingEngineRequestItemSilently(skipTo: Int) = requestChatResponseItemFromNetwork(skipTo, true)
+    override fun onPollingEngineRequestItem(skipTo: Int) = requestChatResponseItemFromNetwork(skipTo)
 
     override fun onPollingEngineDisplayCommand(commandText: String) = addItemsToList(listOf(createChatCommandListItem(commandText)))
 
-    override fun onPollingEngineInvalidCommand() {
-        errorEvent.value = Event("Invalid command!")
-    }
+    override fun onPollingEngineInvalidCommand() = errorEvent.postValue(Event("Invalid command!"))
 
-    override fun onPollingEngineDischargeItems(itemsToAdd: MutableList<ListItemViewModel>) = addItemsToList(itemsToAdd)
+    override fun onPollingEngineDischargeItems(itemsToAdd: List<ListItemViewModel>) = addItemsToList(itemsToAdd)
 
     override fun onCleared() {
         super.onCleared()
@@ -53,10 +49,10 @@ class ChatViewModel(private val model: ChatModel) : BaseViewModel(), PollingEngi
 
     fun onEnterCommand(view: View) = handleTextInput(commandText.safeValue(""))
 
-    private fun requestChatResponseItemFromNetwork(skipTo: Int, isSilent: Boolean) {
+    private fun requestChatResponseItemFromNetwork(skipTo: Int) {
         viewModelScope.launchOnIO(
             block = { model.getProducts(skipTo) },
-            success = { handleChatResponseItemSuccess(it, isSilent) },
+            success = { handleChatResponseItemSuccess(it) },
             apiFailure = { handleChatResponseItemError(it) }
         )
     }
@@ -72,14 +68,9 @@ class ChatViewModel(private val model: ChatModel) : BaseViewModel(), PollingEngi
         }
     }
 
-    private fun handleChatResponseItemSuccess(result: ChatResponseData, isSilent: Boolean) {
+    private fun handleChatResponseItemSuccess(result: ChatResponseData) {
         Timber.d("Successfully received a chat response item from the network.")
-        if (isSilent) {
-            pollingEngine.storeListItem(createChatResponseListItem(result))
-        } else {
-            addItemsToList(listOf(createChatResponseListItem(result)))
-        }
-        pollingEngine.currentPage++
+        pollingEngine.handleItemSuccess(createChatResponseListItem(result))
     }
 
     // Ideally, we'd handle errors gracefully here, such as having a "lives" system, where we would, let's say, reset the screen
@@ -89,13 +80,9 @@ class ChatViewModel(private val model: ChatModel) : BaseViewModel(), PollingEngi
         errorEvent.value = Event(error.message)
     }
 
-    private fun createChatResponseListItem(data: ChatResponseData): ChatResponseListItemViewModel {
-        return ChatResponseListItemViewModel(data)
-    }
+    private fun createChatResponseListItem(data: ChatResponseData) = ChatResponseListItemViewModel(data)
 
-    private fun createChatCommandListItem(commandText: String): ChatCommandListItemViewModel {
-        return ChatCommandListItemViewModel(ChatCommandData(System.currentTimeMillis(), commandText))
-    }
+    private fun createChatCommandListItem(commandText: String) = ChatCommandListItemViewModel(ChatCommandData(text = commandText))
 
     private fun addItemsToList(itemsToAdd: List<ListItemViewModel>) {
         val currentListItems = listItems.safeValue(emptyList()).toMutableList()
