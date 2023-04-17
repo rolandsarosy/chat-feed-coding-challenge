@@ -22,7 +22,7 @@
             android:layout_height="0dp"
             android:layout_marginBottom="8dp"
             android:overScrollMode="never"
-            app:layoutManager="com.rolandsarosy.chatfeedchallenge.common.AutoScrollLinearLayoutManager"
+            app:layoutManager="com.rolandsarosy.chatfeedchallenge.common.recyclerview.AutoScrollLinearLayoutManager"
             app:layout_constraintBottom_toTopOf="@id/chat_input_layout"
             app:layout_constraintTop_toTopOf="parent"
             bind:source="@{viewModel.listItems}" />

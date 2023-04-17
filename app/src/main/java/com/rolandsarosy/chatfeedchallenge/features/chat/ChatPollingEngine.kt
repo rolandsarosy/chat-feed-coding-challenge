@@ -2,7 +2,9 @@ package com.rolandsarosy.chatfeedchallenge.features.chat
 
 import com.rolandsarosy.chatfeedchallenge.common.recyclerview.ListItemViewModel
 import com.rolandsarosy.chatfeedchallenge.data.domainobjects.ChatCommand
+import com.rolandsarosy.chatfeedchallenge.data.domainobjects.ChatCommandData
 import com.rolandsarosy.chatfeedchallenge.data.domainobjects.ChatPollingState
+import com.rolandsarosy.chatfeedchallenge.features.chat.viewmodel.ChatCommandListItemViewModel
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.launchIn
@@ -78,7 +80,7 @@ class ChatPollingEngine(private val engineMediator: PollingEngineMediator) {
     private fun stopAndReset() {
         destroyTicker()
         state = ChatPollingState.STOPPED
-        engineMediator.onPollingEngineDisplayCommand(ChatCommand.STOP.text)
+        engineMediator.onPollingEngineDischargeItems(listOf(ChatCommandListItemViewModel(ChatCommandData(text = ChatCommand.STOP.text))))
         storedListItems.clear()
         currentPage = STARTING_POLLING_PAGE
     }
@@ -89,7 +91,7 @@ class ChatPollingEngine(private val engineMediator: PollingEngineMediator) {
             ChatPollingState.PAUSED -> engineMediator.onPollingEngineInvalidCommand()
             ChatPollingState.STOPPED -> {
                 state = ChatPollingState.FETCHING
-                engineMediator.onPollingEngineDisplayCommand(ChatCommand.START.text)
+                engineMediator.onPollingEngineDischargeItems(listOf(ChatCommandListItemViewModel(ChatCommandData(text = ChatCommand.START.text))))
                 launchTicker()
             }
         }
@@ -107,7 +109,7 @@ class ChatPollingEngine(private val engineMediator: PollingEngineMediator) {
         when (state) {
             ChatPollingState.FETCHING -> {
                 state = ChatPollingState.PAUSED
-                engineMediator.onPollingEngineDisplayCommand(ChatCommand.PAUSE.text)
+                engineMediator.onPollingEngineDischargeItems(listOf(ChatCommandListItemViewModel(ChatCommandData(text = ChatCommand.PAUSE.text))))
             }
             ChatPollingState.STOPPED -> engineMediator.onPollingEngineInvalidCommand()
             ChatPollingState.PAUSED -> engineMediator.onPollingEngineInvalidCommand()
@@ -118,7 +120,7 @@ class ChatPollingEngine(private val engineMediator: PollingEngineMediator) {
         when (state) {
             ChatPollingState.PAUSED -> {
                 state = ChatPollingState.FETCHING
-                engineMediator.onPollingEngineDisplayCommand(ChatCommand.RESUME.text)
+                storedListItems.add(0, ChatCommandListItemViewModel(ChatCommandData(text = ChatCommand.RESUME.text)))
                 engineMediator.onPollingEngineDischargeItems(storedListItems)
                 storedListItems.clear()
             }
@@ -130,7 +132,6 @@ class ChatPollingEngine(private val engineMediator: PollingEngineMediator) {
 
 interface PollingEngineMediator {
     fun onPollingEngineRequestItem(skipTo: Int)
-    fun onPollingEngineDisplayCommand(commandText: String)
     fun onPollingEngineInvalidCommand()
     fun onPollingEngineDischargeItems(itemsToAdd: List<ListItemViewModel>)
 }
