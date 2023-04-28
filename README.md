@@ -82,14 +82,6 @@ Due to the scope of the project, I did not make a specific `ErrorView`, but this
 
 Default error messages should definitely use String resources instead of burned-in values, to support localization.
 
-> ChatFragment.kt
-
-The way that automatic scrolling to the bottom of the list is handled right now is not the greatest. Ideally, I'd develop a custom LinearLayoutManager, which would scroll to the bottom after every layout change. 
-
-Edit.: I've developed a custom LinearLayoutManager which does the job in most cases, but there is an edge-case which I did not have the time to handle, so I did not merge it, as it can fail a specification point. 
-
-You can see the related code in the `feature/add-auto-scroll-layout-manager` branch, or in the [relevant merge request](https://github.com/rolandsarosy/chat-feed-coding-challenge/pull/1).
-
 > Screen panning
 
 Currently, `adjustResize` is used at a `windowSoftInputMode` panning option, but other options, or a custom implementation might be better. When the software keyboard appears, the list is currently not scrolled to the new bottom with `adjustResize` for example. 
